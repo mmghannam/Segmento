@@ -1,4 +1,7 @@
-class KmeansClassifier:
+from helpers import sum_square_error, euclidean_distance
+
+
+class KMeans:
     def assign(data, k, error, distance_func=euclidean_distance, max_iter=100):
         import random
         t = 0
@@ -21,4 +24,3 @@ class KmeansClassifier:
             if sum_square_error(assignment) < error or t > max_iter:
                 break
         return assignment
-
