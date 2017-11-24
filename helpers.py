@@ -24,3 +24,20 @@ def resize_image(path, x, y):
         with Image.open(f) as image:
             image = image.resize((x, y), Image.NEAREST)
             return image
+
+
+def show_image_from_data(mode, size, data):
+    from PIL import Image
+    new_image = Image.new(mode, size)
+    new_image.putdata(data)
+    new_image.show()
+
+
+def timed(f):
+    from time import time
+    def decorator(*args, **kargs):
+        start = time()
+        result = f(*args, **kargs)
+        print(f.__name__, 'took', time() - start, 'seconds')
+        return result
+    return decorator
