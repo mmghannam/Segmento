@@ -1,8 +1,8 @@
+from scipy.spatial import distance
 from numpy.linalg import norm
 
-
 def euclidean_distance(a, b):
-    return norm(a - b)
+    return distance.euclidean(a, b)
 
 
 def manhattan_distance(a, b):
@@ -40,4 +40,5 @@ def timed(f):
         result = f(*args, **kargs)
         print(f.__name__, 'took', time() - start, 'seconds')
         return result
+
     return decorator
