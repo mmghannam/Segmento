@@ -5,7 +5,6 @@ from sklearn.cluster import KMeans as K
 from time import time
 
 
-
 class KMeans:
     def __init__(self, data, k, tol, distance_func=manhattan_distance, max_iter=10):
         self.data = data
@@ -69,14 +68,14 @@ class KMeans:
         return sum_square_error(self.data, means, assignment)
 
 
-from PIL import Image
-
-image_name = '55075.jpg'
-path = TRAIN_PATH + image_name
-img = Image.open(path)
-# img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
-image_data = img.getdata()
-new_image = Image.new(img.mode, img.size)
-clusterer = KMeans(image_data, k=11, tol=1)
-new_image_data = clusterer.assign()[1]
-show_image_from_data(img.mode, img.size, new_image_data)
+if __name__ == "__main__":
+    from PIL import Image
+    image_name = '55075.jpg'
+    path = TRAIN_PATH + image_name
+    img = Image.open(path)
+    # img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
+    image_data = img.getdata()
+    new_image = Image.new(img.mode, img.size)
+    clusterer = KMeans(image_data, k=11, tol=1)
+    new_image_data = clusterer.assign()[1]
+    show_image_from_data(img.mode, img.size, new_image_data)
