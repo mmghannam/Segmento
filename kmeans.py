@@ -8,11 +8,10 @@ import numpy as np
 
 
 class KMeans:
-    def __init__(self, data, k, tol, distance_func=manhattan_distance, max_iter=100):
+    def __init__(self, data, k, tol, max_iter=100):
         self.data = data
         self.k = k
         self.tol = tol
-        self.distance_func = distance_func
         self.max_iter = max_iter
 
     def assign(self):
