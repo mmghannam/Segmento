@@ -19,7 +19,7 @@ def conditional_entropy(result, truth):
 
 def f_measure(result, truth):
     # Ni is the number of points in a cluster
-    result_cluster_stats = count_correctly_clustered(result)
+    result_cluster_stats = count_correctly_clustered(result, truth)
     truth_cluster_stats = count_clusters(truth)
 
     purity = calculate_purity(result_cluster_stats, truth_cluster_stats)
@@ -40,6 +40,7 @@ def calculate_purity(result_cluster_stats, truth_cluster_stats):
 def count_correctly_clustered(result, truth):
     """
     Computes the value n_ij for a given clustering and its ground truth
+    the n_ij value is the number of the truly identified pixels
     :param result: Calculated clustering
     :param truth: Ground truth clustering
     :return: Nij for all clusters in a hashtable
@@ -65,9 +66,8 @@ def count_correctly_clustered(result, truth):
 
 def count_clusters(items):
     """
-    Counts the elements in all clusters in a given clustering ci
-    :param items:
-    :return:
+    Counts the elements in all clusters in a given clustering
+    :param items: Result of the clustering process
     """
     counts = {}
 
