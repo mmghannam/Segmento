@@ -17,6 +17,15 @@ def conditional_entropy(result, truth):
     return -1 * entropy
 
 
+def f_measure(result, truth):
+    # Ni is the number of points in a cluster
+    result_cluster_stats = count_correctly_clustered(result)
+    truth_cluster_stats = count_clusters(truth)
+
+    purity = calculate_purity(result_cluster_stats, truth_cluster_stats)
+    raise NotImplementedError()
+
+
 def calculate_purity(result_cluster_stats, truth_cluster_stats):
     purity = 0
     # Sum of values in the truth is the total number of pixels
