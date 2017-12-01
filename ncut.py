@@ -44,9 +44,12 @@ class NCut:
     def __make_knn_sim_matrix(data, n_neighbors):
         size = len(data)
         sim_matrix = np.zeros((size, size))
-
-        # TODO(1): Generate KNN sim matrix
-
+        distance_matrix = np.zeros((size, size))
+        for i in range(size):
+            for j in range(size):
+                distance_matrix[i, j] = euclidean_distance(data[i], data[j])
+        for i in range(size):
+            sim_matrix[i, distance_matrix[i].argsort()[:n_neighbors]] = 1
         return sim_matrix
 
     @staticmethod
@@ -71,12 +74,12 @@ class NCut:
 
 
 if __name__ == "__main__":
-    image_name = '135069.jpg'
+    image_name = '299091.jpg'
     path = TRAIN_PATH + image_name
     img = Image.open(path)
-    img = resize_image(path, img.size[0] // 5, img.size[1] // 5)
+    img = resize_image(path, img.size[0] // 10, img.size[1] // 10)
     image_data = img.getdata()
     show_image_from_data(img.mode, img.size, image_data)
-    clustering = NCut(image_data, 2, gamma=1, algorithm=NCut.RBF_KERNEL)
+    clustering = NCut(image_data, 3, n_neighbors=10, algorithm=NCut.KNN)
     new_image_data = clustering.assign()
     show_image_from_data(img.mode, img.size, new_image_data)
