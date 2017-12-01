@@ -7,7 +7,7 @@ def conditional_entropy(result, truth):
     result_counts = count_correctly_clustered(result, truth)
     truth_counts = count_clusters(truth)
 
-    for idx in truth_counts.keys():
+    for idx in result_counts.keys():
         nij = result_counts[idx]  # Correct elements
         ni = truth_counts[idx]  # Deduced elements
 
@@ -78,3 +78,65 @@ def count_clusters(items):
             counts[cluster] += 1
 
     return counts
+
+
+def class_equality(prediction, truth):
+    """
+    returns the counts of each pair of assignment
+    """
+    result = {}
+    for p, t in zip(prediction, truth):
+        if p not in result:
+            result[p] = {t: 1}
+        elif t not in result[p]:
+            result[p][t] = 1
+        else:
+            result[p][t] += 1
+    return result
+
+
+def best_equal_clusters(prediction, truth):
+    """
+    returns a dict of what assignment classes are equal to each other
+    """
+    cl_eq = class_equality(prediction, truth)
+    result = {}
+    for cl in cl_eq.keys():
+        cl_counts = cl_eq[cl]
+        try:
+            result[cl] = max([cl for cl in cl_eq[cl].keys() if cl not in result], key=lambda x: cl_counts[x])
+        except:
+            # happens if no max to be found (empty list)
+            pass
+    return result
+
+
+def both_assignment_the_same(prediction, truth):
+    bec = best_equal_clusters(prediction, truth)
+    print(bec)
+    for i, element in enumerate(prediction):
+        try:
+            prediction[i] = bec[element]
+        except KeyError:
+            continue
+    return prediction, truth
+
+
+if __name__ == '__main__':
+    from data_reader import *
+    from kmeans import KMeans
+
+    image_name = '3063.jpg'
+    path = TEST_PATH + image_name
+    img = Image.open(path)
+    # img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
+    image_data = array(img.getdata())
+    new_image = Image.new(img.mode, img.size)
+    clusterer = KMeans(image_data, k=51, tol=1)
+    prediction = clusterer.assign()[0]
+    truth = read_ground_truth(GROUND_TRUTH_TEST_PATH)[image_name.replace('.jpg', '')]
+    truth = truth[0].flatten()
+    print(set(prediction))
+    print(set(truth))
+    prediction, truth = both_assignment_the_same(prediction, truth)
+    print(conditional_entropy(truth, prediction))

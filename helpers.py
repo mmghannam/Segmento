@@ -1,6 +1,7 @@
 from scipy.spatial import distance
 from numpy.linalg import norm
 
+
 def euclidean_distance(a, b):
     return distance.euclidean(a, b)
 
@@ -35,10 +36,11 @@ def show_image_from_data(mode, size, data):
 
 def timed(f):
     from time import time
-    def decorator(*args, **kargs):
+
+    def decorator(*args, **kwargs):
         start = time()
-        result = f(*args, **kargs)
-        print(f.__name__, 'took', time() - start, 'seconds')
+        result = f(*args, **kwargs)
+        # print(f.__name__, 'took', time() - start, 'seconds')
         return result
 
     return decorator
