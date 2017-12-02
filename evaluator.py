@@ -122,21 +122,33 @@ def both_assignment_the_same(prediction, truth):
     return prediction, truth
 
 
-if __name__ == '__main__':
-    from data_reader import *
-    from kmeans import KMeans
+def evaluate_kmeans_from_cache(eval_func):
+    from glob import glob
+    from pickle import load, dump
+    from data_reader import read_ground_truth, GROUND_TRUTH_TEST_PATH
+    from os.path import isfile
 
-    image_name = '3063.jpg'
-    path = TEST_PATH + image_name
-    img = Image.open(path)
-    # img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
-    image_data = array(img.getdata())
-    new_image = Image.new(img.mode, img.size)
-    clusterer = KMeans(image_data, k=51, tol=1)
-    prediction = clusterer.assign()[0]
-    truth = read_ground_truth(GROUND_TRUTH_TEST_PATH)[image_name.replace('.jpg', '')]
-    truth = truth[0].flatten()
-    print(set(prediction))
-    print(set(truth))
-    prediction, truth = both_assignment_the_same(prediction, truth)
-    print(conditional_entropy(truth, prediction))
+    ground_truth = read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    CACHED_RESULTS_PATH = 'kmeans-cache/'
+    EVALUATION_RESULTS_PATH = 'kmeans-evaluations-' + eval_func.__name__ + '/'
+    for k in range(3, 12, 2):
+        for result_file_name in glob(CACHED_RESULTS_PATH + '*-' + str(k)):
+
+            img_name = result_file_name.replace(CACHED_RESULTS_PATH,'').split('-')[0]
+            with open(result_file_name,'rb') as f:
+                result_assignment = load(f)[0]
+
+            cached_file_name = EVALUATION_RESULTS_PATH + img_name + '-' + str(k)
+            if not isfile(cached_file_name):
+                evaluations = []
+                for truth in ground_truth[img_name]:
+                    evaluation = eval_func(result_assignment, truth.flatten())
+                    evaluations.append(evaluation)
+                with open(cached_file_name, 'wb') as f:
+                    dump(evaluations, f)
+
+
+if __name__ == '__main__':
+    from glob import glob
+    evaluate_kmeans_from_cache(conditional_entropy)
+    print(len(glob('kmeans-evaluations-conditional_entropy/*')))
