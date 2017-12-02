@@ -36,13 +36,13 @@ def read_ground_truth(folder_path):
         table_key = image_name.replace(extension, "")
         segmented_data[table_key] = []
 
-        for i in range(TRUTH_SEG_COUNT):
+        for s in images[0]:
             # Couldn't make it pretty
-            image = images[0][i][0][0][0]
-            segmented_data[table_key].append(image)
+            segmentation = s[0]['Segmentation'][0]
+            segmented_data[table_key].append(segmentation)
 
             # Use for testing
-            # plt.imshow(image)
+            # plt.imshow(segmentation)
             # plt.show()
 
     return segmented_data
