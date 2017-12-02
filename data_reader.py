@@ -14,7 +14,6 @@ def read_image(path, with_location=False):
     img = Image.open(path)
     if with_location:
         result = []
-        print(img.size)
         for i, pixel in enumerate(img.getdata()):
             x = i // img.size[0]
             y = i % img.size[1]

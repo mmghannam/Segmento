@@ -3,24 +3,16 @@ import numpy as np
 
 
 def conditional_entropy(result, truth):
-    # Returns a hashtable as follows
-    # cluster : pixel count
-    truth_counts = count_clusters(truth)
-
     entropy = 0
 
     for cluster in np.unique(result):
-        # Number of elements in cluster
-        cluster_element_count = truth_counts[cluster]
+        cluster_elements = truth[np.where(result == cluster)]
+        elements_counter = Counter(cluster_elements)
 
         cluster_entropy = 0
-        for cls in truth_counts.keys():
-            # Number of elements in cls cluster divided by the size of the image
-            coeff = truth_counts[cls] / np.size(result)
-
-            # Number of elements in the correct cls cluster, over the number of
-            # elements in the resulting clustering
-            probability = truth_counts[cls] / cluster_element_count
+        for _count in elements_counter.keys():
+            coeff = elements_counter[_count] / np.size(result)
+            probability = elements_counter[_count] / np.size(cluster_elements)
 
             cluster_entropy -= coeff * np.log2(probability)
 
@@ -30,12 +22,16 @@ def conditional_entropy(result, truth):
 
 
 def f_measure(result, truth):
-    # Ni is the number of points in a cluster
-    result_cluster_stats = count_correctly_clustered(result, truth)
-    truth_cluster_stats = count_clusters(truth)
-
-    purity = calculate_purity(result_cluster_stats, truth_cluster_stats)
-    raise NotImplementedError()
+    truth_counter = Counter(truth)
+    f_measure = list()
+    for cluster in np.unique(result):
+        cluster_elements = truth[np.where(result == cluster)]
+        cluster_count = Counter(cluster_elements)
+        max_partition = cluster_count.most_common(1)[0]
+        purity = max_partition[1] / cluster_elements.size
+        recall = max_partition[1] / truth_counter[max_partition[0]]
+        f_measure.append(2 * purity * recall / (purity + recall))
+    return sum(f_measure) / len(f_measure)
 
 
 def calculate_purity(result_cluster_stats, truth_cluster_stats):
@@ -145,7 +141,7 @@ def evaluate_segmentation_from_cache(segmentation_technique, eval_func):
     EVALUATION_RESULTS_PATH = segmentation_technique + '-evaluations-' + eval_func.__name__ + '/'
     for k in range(3, 12, 2):
         for result_file_name in glob(CACHED_RESULTS_PATH + '*-' + str(k)):
-
+            print(result_file_name, k)
             img_name = result_file_name.replace(CACHED_RESULTS_PATH, '').split('-')[0]
             with open(result_file_name, 'rb') as f:
                 result_assignment = load(f)[0]
@@ -160,8 +156,24 @@ def evaluate_segmentation_from_cache(segmentation_technique, eval_func):
                     dump(evaluations, f)
 
 
+def print_evaluations(cached_files):
+    from pickle import load
+    for file in sorted(cached_files):
+        print('file name:', file.split('/')[-1])
+        with open(file, 'rb') as f:
+            evaluations = load(f)
+            average = sum(evaluations) / len(evaluations)
+            print('average evaluation:', average)
+            print('----------------------------')
+
+
 if __name__ == '__main__':
     from glob import glob
 
-    evaluate_segmentation_from_cache('kmeans', conditional_entropy)
-    print(len(glob('kmeans-evaluations-conditional_entropy/*')))
+    # evaluate_segmentation_from_cache('kmeans', conditional_entropy)
+    # print(len(glob('kmeans-evaluations-conditional_entropy/*')))
+    # print_evaluations(glob('kmeans-evaluations-conditional_entropy/*'))
+
+
+    evaluate_segmentation_from_cache('kmeans', f_measure)
+    print(len(glob('kmeans-evaluations-f_measure/*')))

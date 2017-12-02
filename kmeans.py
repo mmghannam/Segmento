@@ -17,7 +17,7 @@ class KMeans:
     def assign(self):
         t = 0
         means = [tuple(x) for x in random.sample(list(self.data), self.k)]
-        last_means = [[0, 0, 0] for _ in range(self.k)]
+        last_means = [[0] * self.data.shape[1] for _ in range(self.k)]
 
         while True:
             start = time()
