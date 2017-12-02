@@ -1,20 +1,32 @@
-import math
+from collections import Counter
+import numpy as np
 
 
 def conditional_entropy(result, truth):
-    # Input is a list, index:pixel , value: cluster
-    entropy = 0
-    result_counts = count_correctly_clustered(result, truth)
+    # Returns a hashtable as follows
+    # cluster : pixel count
     truth_counts = count_clusters(truth)
 
-    for idx in result_counts.keys():
-        nij = result_counts[idx]  # Correct elements
-        ni = truth_counts[idx]  # Deduced elements
+    entropy = 0
 
-        percentage = nij / ni
-        entropy += percentage * math.log(percentage, 2)
+    for cluster in np.unique(result):
+        # Number of elements in cluster
+        cluster_element_count = truth_counts[cluster]
 
-    return -1 * entropy
+        cluster_entropy = 0
+        for cls in truth_counts.keys():
+            # Number of elements in cls cluster divided by the size of the image
+            coeff = truth_counts[cls] / np.size(result)
+
+            # Number of elements in the correct cls cluster, over the number of
+            # elements in the resulting clustering
+            probability = truth_counts[cls] / cluster_element_count
+
+            cluster_entropy -= coeff * np.log2(probability)
+
+        entropy += cluster_entropy
+
+    return entropy
 
 
 def f_measure(result, truth):
