@@ -10,9 +10,18 @@ GROUND_TRUTH_TEST_PATH = "BSR/BSDS500/data/groundTruth/test/"
 TRUTH_SEG_COUNT = 4  # Number of different segmentations per image in GroundTruth
 
 
-def read_image(path):
+def read_image(path, with_location=False):
     img = Image.open(path)
-    return array(img.getdata())
+    if with_location:
+        result = []
+        print(img.size)
+        for i, pixel in enumerate(img.getdata()):
+            x = i // img.size[0]
+            y = i % img.size[1]
+            result.append((x, y, *pixel))
+        return array(result)
+    else:
+        return array(img.getdata())
 
 
 def read_ground_truth(folder_path):
@@ -49,4 +58,5 @@ def read_ground_truth(folder_path):
 
 
 if __name__ == "__main__":
-    read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    # read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    read_image(TRAIN_PATH + '2092.jpg', with_location=True)
