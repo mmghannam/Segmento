@@ -2,3 +2,5 @@
 .idea
 BSR
 __pycache__
+kmeans-cache
+kmeans-evaluations-conditional_entropy

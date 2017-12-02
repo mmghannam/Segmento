@@ -1,20 +1,41 @@
-import math
+from collections import Counter
+import numpy as np
 
 
 def conditional_entropy(result, truth):
-    # Input is a list, index:pixel , value: cluster
-    entropy = 0
-    result_counts = count_correctly_clustered(result, truth)
+    # Returns a hashtable as follows
+    # cluster : pixel count
     truth_counts = count_clusters(truth)
 
-    for idx in truth_counts.keys():
-        nij = result_counts[idx]  # Correct elements
-        ni = truth_counts[idx]  # Deduced elements
+    entropy = 0
 
-        percentage = nij / ni
-        entropy += percentage * math.log(percentage, 2)
+    for cluster in np.unique(result):
+        # Number of elements in cluster
+        cluster_element_count = truth_counts[cluster]
 
-    return -1 * entropy
+        cluster_entropy = 0
+        for cls in truth_counts.keys():
+            # Number of elements in cls cluster divided by the size of the image
+            coeff = truth_counts[cls] / np.size(result)
+
+            # Number of elements in the correct cls cluster, over the number of
+            # elements in the resulting clustering
+            probability = truth_counts[cls] / cluster_element_count
+
+            cluster_entropy -= coeff * np.log2(probability)
+
+        entropy += cluster_entropy
+
+    return entropy
+
+
+def f_measure(result, truth):
+    # Ni is the number of points in a cluster
+    result_cluster_stats = count_correctly_clustered(result, truth)
+    truth_cluster_stats = count_clusters(truth)
+
+    purity = calculate_purity(result_cluster_stats, truth_cluster_stats)
+    raise NotImplementedError()
 
 
 def calculate_purity(result_cluster_stats, truth_cluster_stats):
@@ -69,3 +90,78 @@ def count_clusters(items):
             counts[cluster] += 1
 
     return counts
+
+
+def class_equality(prediction, truth):
+    """
+    returns the counts of each pair of assignment
+    """
+    result = {}
+    for p, t in zip(prediction, truth):
+        if p not in result:
+            result[p] = {t: 1}
+        elif t not in result[p]:
+            result[p][t] = 1
+        else:
+            result[p][t] += 1
+    return result
+
+
+def best_equal_clusters(prediction, truth):
+    """
+    returns a dict of what assignment classes are equal to each other
+    """
+    cl_eq = class_equality(prediction, truth)
+    result = {}
+    for cl in cl_eq.keys():
+        cl_counts = cl_eq[cl]
+        try:
+            result[cl] = max([cl for cl in cl_eq[cl].keys() if cl not in result], key=lambda x: cl_counts[x])
+        except:
+            # happens if no max to be found (empty list)
+            pass
+    return result
+
+
+def both_assignment_the_same(prediction, truth):
+    bec = best_equal_clusters(prediction, truth)
+    print(bec)
+    for i, element in enumerate(prediction):
+        try:
+            prediction[i] = bec[element]
+        except KeyError:
+            continue
+    return prediction, truth
+
+
+def evaluate_segmentation_from_cache(segmentation_technique, eval_func):
+    from glob import glob
+    from pickle import load, dump
+    from data_reader import read_ground_truth, GROUND_TRUTH_TEST_PATH
+    from os.path import isfile
+
+    ground_truth = read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    CACHED_RESULTS_PATH = segmentation_technique + '-cache/'
+    EVALUATION_RESULTS_PATH = segmentation_technique + '-evaluations-' + eval_func.__name__ + '/'
+    for k in range(3, 12, 2):
+        for result_file_name in glob(CACHED_RESULTS_PATH + '*-' + str(k)):
+
+            img_name = result_file_name.replace(CACHED_RESULTS_PATH, '').split('-')[0]
+            with open(result_file_name, 'rb') as f:
+                result_assignment = load(f)[0]
+
+            cached_file_name = EVALUATION_RESULTS_PATH + img_name + '-' + str(k)
+            if not isfile(cached_file_name):
+                evaluations = []
+                for truth in ground_truth[img_name]:
+                    evaluation = eval_func(result_assignment, truth.flatten())
+                    evaluations.append(evaluation)
+                with open(cached_file_name, 'wb') as f:
+                    dump(evaluations, f)
+
+
+if __name__ == '__main__':
+    from glob import glob
+
+    evaluate_segmentation_from_cache('kmeans', conditional_entropy)
+    print(len(glob('kmeans-evaluations-conditional_entropy/*')))
