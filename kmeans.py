@@ -1,7 +1,7 @@
 from numpy import array, allclose, amin
 from copy import copy
 from helpers import *
-from data_reader import TRAIN_PATH
+from data_reader import *
 from time import time
 import random
 import numpy as np
@@ -64,13 +64,25 @@ class KMeans:
 
 if __name__ == "__main__":
     from PIL import Image
+    import matplotlib.pyplot as plt
 
-    image_name = '55075.jpg'
-    path = TRAIN_PATH + image_name
-    img = Image.open(path)
-    # img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
-    image_data = array(img.getdata())
-    new_image = Image.new(img.mode, img.size)
-    clusterer = KMeans(image_data, k=101, tol=1)
-    new_image_data = clusterer.assign()[1]
-    show_image_from_data(img.mode, img.size, new_image_data)
+    images = ['81095.jpg', '2018.jpg', '3063.jpg', '5096.jpg', '6046.jpg']
+
+    ground_truths = read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    for image_name in images:
+        plt.imshow(ground_truths[image_name.replace('.jpg', '')][0])
+
+    plt.show()
+
+    for image_name in images:
+        path = TEST_PATH + image_name
+        img = Image.open(path)
+        # img = resize_image(path, img.size[0] // 2, img.size[1] // 2)
+        print(img.mode, img.size)
+        image_data = array(img.getdata())
+        new_image = Image.new(img.mode, img.size)
+        clusterer = KMeans(image_data, k=5, tol=1)
+        new_image_data = clusterer.assign()[1]
+        show_image_from_data(new_image_data, img.mode, img.size )
+
+

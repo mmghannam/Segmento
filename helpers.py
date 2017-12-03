@@ -27,7 +27,7 @@ def resize_image(path, x, y):
             return image
 
 
-def show_image_from_data(mode, size, data):
+def show_image_from_data(data, mode='RGB', size=(321, 481)):
     from PIL import Image
     new_image = Image.new(mode, size)
     new_image.putdata(data)

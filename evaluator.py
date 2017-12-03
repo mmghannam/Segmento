@@ -1,20 +1,22 @@
 from collections import Counter
 import numpy as np
+from data_reader import *
+from helpers import *
 
 
 def conditional_entropy(result, truth):
     entropy = 0
 
-    for cluster in np.unique(result):
-        cluster_elements = truth[np.where(result == cluster)]
+    for truth_cluster in np.unique(result):
+        cluster_elements = truth[np.where(result == truth_cluster)]
         elements_counter = Counter(cluster_elements)
 
         cluster_entropy = 0
-        for _count in elements_counter.keys():
-            coeff = elements_counter[_count] / np.size(result)
-            probability = elements_counter[_count] / np.size(cluster_elements)
+        for truth_cluster in elements_counter.keys():
+            final_coeff = elements_counter[truth_cluster] / np.size(result)
+            prob = elements_counter[truth_cluster] / np.size(cluster_elements)
 
-            cluster_entropy -= coeff * np.log2(probability)
+            cluster_entropy -= final_coeff * np.log2(prob)
 
         entropy += cluster_entropy
 
@@ -158,6 +160,7 @@ def evaluate_segmentation_from_cache(segmentation_technique, eval_func):
 
 def print_evaluations(cached_files):
     from pickle import load
+    result = []
     for file in sorted(cached_files):
         print('file name:', file.split('/')[-1])
         with open(file, 'rb') as f:
@@ -165,6 +168,27 @@ def print_evaluations(cached_files):
             average = sum(evaluations) / len(evaluations)
             print('average evaluation:', average)
             print('----------------------------')
+            result.append(average)
+    return result
+
+
+def big_picture_kmeans():
+    from glob import glob
+    from pickle import load
+    import matplotlib.pyplot as plt
+
+    image_files = sorted(glob('kmeans-cache/*-11'))[-5:]
+    # image_files = sorted(glob('kmeans-loc-cache/*'))[:5]
+    ground_truths = read_ground_truth(GROUND_TRUTH_TEST_PATH)
+    for file in image_files:
+        print(file)
+        with open(file, 'rb') as f:
+            _, image_data = load(f)
+            colors = array(image_data)[:, -3:]
+            show_image_from_data([tuple(x) for x in colors])
+            for truth in ground_truths[file.split('/')[-1].split('-')[0]]:
+                plt.imshow(truth)
+                plt.show()
 
 
 if __name__ == '__main__':
@@ -174,6 +198,16 @@ if __name__ == '__main__':
     # print(len(glob('kmeans-evaluations-conditional_entropy/*')))
     # print_evaluations(glob('kmeans-evaluations-conditional_entropy/*'))
 
+    # evaluate_segmentation_from_cache('kmeans-loc', conditional_entropy)
+    print(len(glob('kmeans-loc-evaluations-conditional_entropy/*')))
+    print_evaluations(glob('kmeans-loc-evaluations-conditional_entropy/*'))
 
-    evaluate_segmentation_from_cache('kmeans', f_measure)
-    print(len(glob('kmeans-evaluations-f_measure/*')))
+    # evaluate_segmentation_from_cache('kmeans', f_measure)
+    # print(len(glob('kmeans-evaluations-f_measure/*')))
+    # print_evaluations(glob('kmeans-evaluations-f_measure/*'))
+
+    # evaluate_segmentation_from_cache('kmeans-loc', f_measure)
+    print(len(glob('kmeans-loc-evaluations-f_measure/*')))
+    # print_evaluations(glob('kmeans-loc-evaluations-f_measure/*'))
+
+    big_picture_kmeans()
